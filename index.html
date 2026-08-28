@@ -1,0 +1,848 @@
+<!doctype html>  
+<html lang="ja">  
+<head>  
+<meta charset="utf-8">  
+<meta name="viewport" content="width=device-width,initial-scale=1">  
+<title>Hair Style AI Demo</title>  
+  
+<style>  
+*{box-sizing:border-box}  
+  
+body{  
+  margin:0;  
+  background:#f7f3ef;  
+  color:#2c2521;  
+  font-family:-apple-system,BlinkMacSystemFont,  
+  "Noto Sans JP","Helvetica Neue",Arial,sans-serif;  
+}  
+  
+.app{  
+  max-width:560px;  
+  margin:auto;  
+  min-height:100vh;  
+  background:#f7f3ef;  
+}  
+  
+header{  
+  padding:22px 20px 10px;  
+  display:flex;  
+  justify-content:space-between;  
+  align-items:center;  
+}  
+  
+header h1{  
+  margin:0;  
+  font-size:22px;  
+}  
+  
+main{  
+  padding:10px 20px 100px;  
+}  
+  
+.screen{  
+  display:none;  
+}  
+  
+.screen.active{  
+  display:block;  
+}  
+  
+.hero{  
+  padding:25px 0;  
+}  
+  
+.hero h2{  
+  font-size:32px;  
+  line-height:1.3;  
+  margin:8px 0;  
+}  
+  
+.muted{  
+  color:#786d65;  
+}  
+  
+.photo{  
+  height:330px;  
+  border:2px dashed #cdbdaf;  
+  border-radius:24px;  
+  display:flex;  
+  align-items:center;  
+  justify-content:center;  
+  overflow:hidden;  
+  background:#eee7e1;  
+}  
+  
+.photo img{  
+  width:100%;  
+  height:100%;  
+  object-fit:cover;  
+}  
+  
+.placeholder{  
+  text-align:center;  
+  color:#786d65;  
+}  
+  
+button{  
+  border:0;  
+  border-radius:14px;  
+  padding:14px 18px;  
+  font-size:16px;  
+  font-weight:700;  
+  cursor:pointer;  
+}  
+  
+.primary{  
+  width:100%;  
+  background:#8b5e3c;  
+  color:white;  
+  margin-top:14px;  
+}  
+  
+.secondary{  
+  width:100%;  
+  background:white;  
+  color:#2c2521;  
+  border:1px solid #e7ddd5;  
+  margin-top:10px;  
+}  
+  
+.card{  
+  background:white;  
+  border-radius:20px;  
+  padding:18px;  
+  margin:12px 0;  
+  box-shadow:0 5px 20px rgba(75,52,36,.06);  
+}  
+  
+.row{  
+  display:flex;  
+  justify-content:space-between;  
+  padding:12px 0;  
+  border-bottom:1px solid #e7ddd5;  
+}  
+  
+.row:last-child{  
+  border-bottom:0;  
+}  
+  
+.score{  
+  font-size:30px;  
+  font-weight:800;  
+  color:#8b5e3c;  
+}  
+  
+.chips{  
+  display:flex;  
+  gap:8px;  
+  flex-wrap:wrap;  
+  margin:14px 0;  
+}  
+  
+.chip{  
+  padding:9px 13px;  
+  border-radius:999px;  
+  background:white;  
+  border:1px solid #e7ddd5;  
+  cursor:pointer;  
+}  
+  
+.chip.selected{  
+  background:#ead9ca;  
+  border-color:#c8a88e;  
+}  
+  
+.style{  
+  display:flex;  
+  justify-content:space-between;  
+  align-items:center;  
+  gap:12px;  
+}  
+  
+.style button{  
+  padding:10px 14px;  
+  background:#f0e4db;  
+}  
+  
+.beforeAfter{  
+  display:grid;  
+  grid-template-columns:1fr 1fr;  
+  gap:10px;  
+}  
+  
+.beforeAfter .photo{  
+  height:280px;  
+}  
+  
+.badge{  
+  position:absolute;  
+  top:12px;  
+  left:12px;  
+  background:white;  
+  padding:7px 10px;  
+  border-radius:999px;  
+  font-size:12px;  
+}  
+  
+.try{  
+  position:relative;  
+}  
+  
+.barber{  
+  background:#211c19;  
+  color:white;  
+  border-radius:20px;  
+  padding:20px;  
+}  
+  
+.barber .row{  
+  border-color:#514841;  
+}  
+  
+.product{  
+  display:flex;  
+  justify-content:space-between;  
+  align-items:center;  
+}  
+  
+.price{  
+  color:#8b5e3c;  
+  font-weight:700;  
+}  
+  
+.nav{  
+  position:fixed;  
+  bottom:0;  
+  left:50%;  
+  transform:translateX(-50%);  
+  width:min(560px,100%);  
+  background:white;  
+  border-top:1px solid #e7ddd5;  
+  display:flex;  
+  justify-content:space-around;  
+  padding:10px;  
+}  
+  
+.nav button{  
+  background:none;  
+  color:#786d65;  
+  padding:8px;  
+}  
+  
+.toast{  
+  position:fixed;  
+  left:50%;  
+  bottom:80px;  
+  transform:translateX(-50%);  
+  background:#211c19;  
+  color:white;  
+  padding:11px 16px;  
+  border-radius:10px;  
+  display:none;  
+  z-index:10;  
+}  
+  
+.small{  
+  font-size:12px;  
+}  
+</style>  
+</head>  
+  
+<body>  
+  
+<div class="app">  
+  
+<header>  
+  <h1>Hair Style AI</h1>  
+  <span class="small">DEMO v0.1</span>  
+</header>  
+  
+<main>  
+  
+<!-- HOME -->  
+<section id="home" class="screen active">  
+  
+<div class="hero">  
+  <div class="muted">AIで、次の髪型を見つける</div>  
+  
+  <h2>  
+    今のあなたに<br>  
+    似合う髪型を。  
+  </h2>  
+</div>  
+  
+<div class="photo" id="photoBox">  
+  
+  <div class="placeholder">  
+    📷  
+    <br><br>  
+    正面から髪全体が写る写真  
+  </div>  
+  
+</div>  
+  
+<input  
+  id="file"  
+  type="file"  
+  accept="image/*"  
+  capture="user"  
+  hidden  
+>  
+  
+<button  
+  class="primary"  
+  onclick="document.getElementById('file').click()"  
+>  
+📷 自撮りして診断  
+</button>  
+  
+<button  
+  class="secondary"  
+  id="diagnoseBtn"  
+  onclick="go('diagnosis')"  
+  disabled  
+>  
+診断結果を見る  
+</button>  
+  
+<div class="card">  
+  
+<b>Hair Style AI デモ</b>  
+  
+<p class="muted small">  
+自撮り → 髪診断 → 髪型選択 → AI試着 →  
+美容師オーダーカードまで体験できます。  
+</p>  
+  
+<p class="muted small">  
+※毛量を意図的に増やす補正は行いません。  
+</p>  
+  
+</div>  
+  
+</section>  
+  
+  
+<!-- DIAGNOSIS -->  
+<section id="diagnosis" class="screen">  
+  
+<h2>AI髪診断</h2>  
+  
+<p class="muted">  
+あなたの現在の髪をベースに推定  
+</p>  
+  
+<div class="card">  
+  
+<div class="row">  
+<span>毛量</span>  
+<b>62 / 100</b>  
+</div>  
+  
+<div class="row">  
+<span>太さ</span>  
+<b>55 / 100</b>  
+</div>  
+  
+<div class="row">  
+<span>ボリューム</span>  
+<b>58 / 100</b>  
+</div>  
+  
+<div class="row">  
+<span>クセ</span>  
+<b>30 / 100</b>  
+</div>  
+  
+<div class="row">  
+<span>長さ</span>  
+<b>ミディアム</b>  
+</div>  
+  
+<div class="row">  
+<span>顔型</span>  
+<b>卵型</b>  
+</div>  
+  
+</div>  
+  
+<div class="card">  
+  
+<span class="muted">  
+診断信頼度  
+</span>  
+  
+<div class="score">  
+78%  
+</div>  
+  
+<p class="small muted">  
+※毛量は写真からの相対推定です。  
+実際の毛髪本数を測定するものではありません。  
+</p>  
+  
+</div>  
+  
+<button  
+ class="primary"  
+ onclick="go('styles')"  
+>  
+あなたに似合う髪型を見る  
+</button>  
+  
+</section>  
+  
+  
+<!-- STYLES -->  
+<section id="styles" class="screen">  
+  
+<h2>髪型を探す</h2>  
+  
+<div class="chips">  
+  
+<span class="chip selected">  
+トレンド  
+</span>  
+  
+<span class="chip">  
+ショート  
+</span>  
+  
+<span class="chip">  
+ミディアム  
+</span>  
+  
+<span class="chip">  
+ロング  
+</span>  
+  
+</div>  
+  
+<p class="muted">  
+あなたへのおすすめ  
+</p>  
+  
+<div id="styleList"></div>  
+  
+</section>  
+  
+  
+<!-- TRY ON -->  
+<section id="tryon" class="screen">  
+  
+<h2>AI試着</h2>  
+  
+<p id="styleName" class="muted"></p>  
+  
+<div class="beforeAfter">  
+  
+<div>  
+  
+<div class="small muted">  
+BEFORE  
+</div>  
+  
+<div class="photo">  
+  
+<img id="beforeImg">  
+  
+</div>  
+  
+</div>  
+  
+<div>  
+  
+<div class="small muted">  
+AFTER・DEMO  
+</div>  
+  
+<div class="photo try">  
+  
+<img id="afterImg">  
+  
+<span class="badge">  
+毛量維持  
+</span>  
+  
+</div>  
+  
+</div>  
+  
+</div>  
+  
+<div class="card">  
+  
+<b>AI試着ルール</b>  
+  
+<p class="small muted">  
+  
+顔・肌・目・鼻・口などを維持し、  
+髪型のみ変更する仕様です。  
+  
+毛量を意図的に増やす加工は行いません。  
+  
+</p>  
+  
+</div>  
+  
+<button  
+ class="primary"  
+ onclick="go('barber')"  
+>  
+この髪型に決める  
+</button>  
+  
+</section>  
+  
+  
+<!-- BARBER CARD -->  
+<section id="barber" class="screen">  
+  
+<h2>  
+美容師オーダーカード  
+</h2>  
+  
+<div class="barber">  
+  
+<h2 id="barberStyle">  
+センターパート  
+</h2>  
+  
+<div class="row">  
+<span>TOP</span>  
+<b>8〜10cm</b>  
+</div>  
+  
+<div class="row">  
+<span>SIDE</span>  
+<b>3〜5cm</b>  
+</div>  
+  
+<div class="row">  
+<span>BACK</span>  
+<b>4〜6cm</b>  
+</div>  
+  
+<div class="row">  
+<span>FRONT</span>  
+<b>7〜9cm</b>  
+</div>  
+  
+<div class="row">  
+<span>NAPE</span>  
+<b>2〜4cm</b>  
+</div>  
+  
+<p>  
+  
+・毛量は現在の状態を維持<br>  
+・サイドは膨らませない<br>  
+・トップは自然な立体感<br>  
+・自然な質感  
+  
+</p>  
+  
+</div>  
+  
+  
+<div class="card">  
+  
+<h3>  
+おすすめスタイリング剤 3点  
+</h3>  
+  
+<div class="row product">  
+  
+<span>  
+軽めワックス  
+</span>  
+  
+<span class="price">  
+¥1,500〜2,000  
+</span>  
+  
+</div>  
+  
+<div class="row product">  
+  
+<span>  
+ヘアオイル  
+</span>  
+  
+<span class="price">  
+¥1,200〜1,800  
+</span>  
+  
+</div>  
+  
+<div class="row product">  
+  
+<span>  
+キープスプレー  
+</span>  
+  
+<span class="price">  
+¥1,000〜1,500  
+</span>  
+  
+</div>  
+  
+</div>  
+  
+  
+<button  
+ class="primary"  
+ onclick="showToast('30秒セットを再生します')"  
+>  
+▶ 30秒セットを見る  
+</button>  
+  
+  
+<button  
+ class="secondary"  
+ onclick="showToast('美容師カードを保存しました')"  
+>  
+美容師カードを保存  
+</button>  
+  
+</section>  
+  
+</main>  
+  
+  
+<nav class="nav">  
+  
+<button onclick="go('home')">  
+⌂<br>  
+<span class="small">ホーム</span>  
+</button>  
+  
+<button onclick="go('styles')">  
+✂<br>  
+<span class="small">髪型</span>  
+</button>  
+  
+<button onclick="showToast('履歴はデモ版では準備中です')">  
+◷<br>  
+<span class="small">履歴</span>  
+</button>  
+  
+</nav>  
+  
+<div id="toast" class="toast"></div>  
+  
+</div>  
+  
+  
+<script>  
+  
+let photoData = "";  
+  
+let selectedStyle = "センターパート";  
+  
+  
+const styles = [  
+  
+[  
+"センターパート",  
+"94%",  
+"ミディアム"  
+],  
+  
+[  
+"軽めマッシュ",  
+"90%",  
+"ショート"  
+],  
+  
+[  
+"レイヤーミディ",  
+"87%",  
+"ミディアム"  
+],  
+  
+[  
+"ナチュラルロング",  
+"82%",  
+"ロング"  
+]  
+  
+];  
+  
+  
+const file =  
+document.getElementById("file");  
+  
+  
+file.addEventListener(  
+"change",  
+function(e){  
+  
+const f = e.target.files[0];  
+  
+if(!f) return;  
+  
+  
+const reader =  
+new FileReader();  
+  
+  
+reader.onload =  
+function(){  
+  
+photoData =  
+reader.result;  
+  
+  
+document.getElementById(  
+"photoBox"  
+).innerHTML =  
+'<img src="' +  
+photoData +  
+'">';  
+  
+  
+document.getElementById(  
+"diagnoseBtn"  
+).disabled = false;  
+  
+};  
+  
+  
+reader.readAsDataURL(f);  
+  
+});  
+  
+  
+function renderStyles(){  
+  
+document.getElementById(  
+"styleList"  
+).innerHTML =  
+  
+styles.map(function(s,i){  
+  
+return `  
+  
+<div class="card style">  
+  
+<div>  
+  
+<b>  
+${i+1}. ${s[0]}  
+</b>  
+  
+<br>  
+  
+<span class="muted small">  
+似合いやすさ ${s[1]}  
+・ ${s[2]}  
+</span>  
+  
+</div>  
+  
+<button  
+onclick="tryStyle('${s[0]}')"  
+>  
+試着  
+</button>  
+  
+</div>  
+  
+`;  
+  
+}).join("");  
+  
+}  
+  
+  
+function tryStyle(style){  
+  
+selectedStyle =  
+style;  
+  
+  
+document.getElementById(  
+"styleName"  
+).textContent =  
+style;  
+  
+  
+document.getElementById(  
+"barberStyle"  
+).textContent =  
+style;  
+  
+  
+document.getElementById(  
+"beforeImg"  
+).src =  
+photoData;  
+  
+  
+document.getElementById(  
+"afterImg"  
+).src =  
+photoData;  
+  
+  
+go("tryon");  
+  
+}  
+  
+  
+function go(id){  
+  
+document  
+.querySelectorAll(".screen")  
+.forEach(function(x){  
+  
+x.classList.remove("active");  
+  
+});  
+  
+  
+document  
+.getElementById(id)  
+.classList.add("active");  
+  
+  
+if(id === "styles"){  
+  
+renderStyles();  
+  
+}  
+  
+  
+window.scrollTo(0,0);  
+  
+}  
+  
+  
+function showToast(text){  
+  
+const toast =  
+document.getElementById("toast");  
+  
+  
+toast.textContent =  
+text;  
+  
+  
+toast.style.display =  
+"block";  
+  
+  
+setTimeout(function(){  
+  
+toast.style.display =  
+"none";  
+  
+},1800);  
+  
+}  
+  
+</script>  
+  
+</body>  
+</html>  
